@@ -1,0 +1,27 @@
+Prerequisite : 
+- Python3
+- Python Module request
+
+Config Prereq :
+yum -y install python3
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install requests
+
+Collect Info :
+-- Define Variable --
+export AAP_USER=changeme
+export AAP_PASS='changeme'
+export AAP_URL='https://changeme'
+
+python3 get-workflow-detail.py ID_WORKFLOW_TEMPLATE > namafile.csv
+example :
+python3 get-workflow-detail.py  625 > dummy-file.csv
+
+Output nya akan sebagai berikut :
+
+workflow_template_name	node_alias	node_type	     resource_name	      playbook
+WORKFLOW_1              Node-1      job_template   nama_job_tempalate   /aap/hello-test.yml
+
+
+
