@@ -1,0 +1,43 @@
+
+
+podman exec -it automation-controller-task awx-manage dbshell
+
+
+### Check Missmatch
+SELECT 
+  (SELECT last_value FROM main_activitystream_id_seq) AS Last_Sequence_Value, 
+  (SELECT MAX(id) FROM main_activitystream) AS Max_ID_assigned;
+
+
+#### Reset the sequence to the maximum ID:
+SELECT SETVAL('public.main_activitystream_id_seq', COALESCE(MAX(id), 1)) FROM public.main_activitystream;
+
+
+### Fix All 
+
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN
+        SELECT sequence_namespace.nspname AS seq_schema,
+               class_sequence.relname AS seq_name,
+               table_namespace.nspname AS tbl_schema,
+               class_table.relname AS tbl_name,
+               pg_attribute.attname AS col_name
+        FROM pg_depend
+        JOIN pg_class AS class_sequence ON class_sequence.oid = pg_depend.objid AND class_sequence.relkind = 'S'
+        JOIN pg_class AS class_table ON class_table.oid = pg_depend.refobjid
+        JOIN pg_attribute ON pg_attribute.attrelid = class_table.oid AND pg_depend.refobjsubid = pg_attribute.attnum
+        JOIN pg_namespace AS table_namespace ON table_namespace.oid = class_table.relnamespace
+        JOIN pg_namespace AS sequence_namespace ON sequence_namespace.oid = class_sequence.relnamespace
+    LOOP
+        EXECUTE format('SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 1))',
+                       r.seq_schema || '.' || r.seq_name,
+                       r.col_name,
+                       r.tbl_schema,
+                       r.tbl_name);
+    END LOOP;
+END $$;
+
+
