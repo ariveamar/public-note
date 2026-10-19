@@ -1,8 +1,11 @@
+###STEP 1 running in the controller-node-1 RC
 
 
 podman exec -it automation-controller-task awx-manage dbshell
 
 
+
+## STEP 2 running in the controller-node-1 RC 
 ### Check Missmatch
 SELECT 
   (SELECT last_value FROM main_activitystream_id_seq) AS Last_Sequence_Value, 
@@ -13,6 +16,15 @@ SELECT
 SELECT SETVAL('public.main_activitystream_id_seq', COALESCE(MAX(id), 1)) FROM public.main_activitystream;
 
 
+
+## STEP 3 running in the controller-node-1 RC 
+### Check Missmatch Again
+SELECT 
+  (SELECT last_value FROM main_activitystream_id_seq) AS Last_Sequence_Value, 
+  (SELECT MAX(id) FROM main_activitystream) AS Max_ID_assigned;
+
+
+## STEP 4 running in the controller-node-1 RC  to solve all sequence issue, but need to check 
 ### Fix All 
 
 DO $$
